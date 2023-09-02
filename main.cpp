@@ -50,8 +50,8 @@ void botao_solto() {
 int main(){
     t.start();
     button.rise(&botao_solto); // attach the address of the flip function to the rising edge
-    t.stop();
     
+
     while (true) {          // wait around, interrupts will interrupt this!
         ThisThread::sleep_for(BLINKING_RATE);
     }
