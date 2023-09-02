@@ -40,7 +40,7 @@ Timer t;
 
 void botao_solto() {
     static unsigned long long timeBefore = 0;
-    unsigned long long timeNow = duration_cast<mileseconds>(t.elapsed_time()).count();
+    unsigned long long timeNow = duration_cast<milliseconds>(t.elapsed_time()).count();
     if(timeNow - timeBefore >= 20){
         led = !led;
     }
