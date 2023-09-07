@@ -37,12 +37,15 @@ using namespace std::chrono;
 InterruptIn button(BUTTON1);
 DigitalOut led(LED1);
 Timer t;
+int counter = 0;
+int leds[] = {0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE0, 0xFE, 0xF6};
+BusOut display(PA_10, PC_7, PA_9, PA_8, PB_10, PB_4, PB_5, PB_3);
 
 void botao_solto() {
     static unsigned long long timeBefore = 0;
     unsigned long long timeNow = duration_cast<milliseconds>(t.elapsed_time()).count();
     if(timeNow - timeBefore >= 20){
-        led = !led;
+        display = leds[counter++ % 10];
     }
     timeBefore = timeNow;
 }
@@ -50,7 +53,6 @@ void botao_solto() {
 int main(){
     t.start();
     button.rise(&botao_solto); // attach the address of the flip function to the rising edge
-    
 
     while (true) {          // wait around, interrupts will interrupt this!
         ThisThread::sleep_for(BLINKING_RATE);
