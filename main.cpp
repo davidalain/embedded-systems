@@ -62,23 +62,21 @@ int main(){
 }
 */
 
+int leds[] = {0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE0, 0xFE, 0xF6};
+BusOut display(PA_10, PC_7, PA_9, PA_8, PB_10, PB_4, PB_5, PB_3);
+
+
 // Teste Joystick
 int main(){
     AnalogIn x(PA_1);
     AnalogIn y(PA_4);
-
+    
     DigitalIn sw(PA_15);
-    DigitalOut led(LED1);
 
     while (1) {
-        if(x.read() <= 0.33) {
-            led = 0;
-        } else if(x.read() >= 0.66) {
-            led = 1;
-        } else {
-            led = !led;
-            ThisThread::sleep_for(BLINKING_RATE);                      
-        }
-        printf("%u\n", x.read_u16());
+        int convertedX = x.read() * 10;
+        printf("%d\n", convertedX);
+        display = leds[convertedX == 10 ? 9 : convertedX];
+        
     }
 }
