@@ -59,11 +59,12 @@ void turnOffLeds() {
      // percorre a senha digitada para checar se é igual a senha pre-definida
      for(int i=0; i<4; i++){
          // se o dígito não é correto
-         if (!(typedPassword[i] != password[i])) {
+         if (typedPassword[i] != password[i]) {
              // atribui true a variável global de verificação de senha
-             isPasswordRight = true;
+            return;
         }
      }
+     isPasswordRight = true;
 }
 
 // Função de chamada para verificar a senha inserida quando o botão 'ok' é pressionado
@@ -90,7 +91,7 @@ void getPassword() {
             checkPasswordCaller();
             break;
         // lógica pra verifcar quando e qual botão foi pressionando
-        }else if(!buttons[i]) {
+        }else if(buttons[i]) {
             typedPassword[index] = i;
             index++;
         }
@@ -130,6 +131,7 @@ int main(){
         getPassword();
         if(isPasswordRight) {
             turnOnLedPass(led_right);
+
         } else {
             turnOnLedPass(led_wrong);
         }
