@@ -130,13 +130,12 @@ int main(){
         getPassword();
         if(isPasswordRight) {
             turnOnLedPass(led_right);
-            // o sistema é resetado para o estado inicial
-            resetSystem();
         } else {
             turnOnLedPass(led_wrong);
-            // o sistema é resetado para o estado inicial
-            resetSystem();
         }
-        
+
+        ThisThread::sleep_for(5000);
+        // o sistema é resetado para o estado inicial
+        resetSystem();
     }
 }
