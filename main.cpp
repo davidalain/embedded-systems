@@ -56,15 +56,15 @@ void turnOffLeds() {
 
 // Função para verificar se a senha digitada é equivalente a pre-definida
  void checkPassCorrect(int* typedPassword){
-     // percorre a senha digitada para checar se é igual a senha pre-definida
-     for(int i=0; i<4; i++){
-         // se o dígito não é correto
-         if (typedPassword[i] != password[i]) {
-             // atribui true a variável global de verificação de senha
+    // percorre a senha digitada para checar se é igual a senha pre-definida
+    for(int i=0; i<4; i++){
+        // se o dígito não é correto
+        if (typedPassword[i] != password[i]) {
             return;
         }
-     }
-     isPasswordRight = true;
+    }
+    // atribui true a variável global de verificação de senha
+    isPasswordRight = true;
 }
 
 // Função de chamada para verificar a senha inserida quando o botão 'ok' é pressionado
