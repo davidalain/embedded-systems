@@ -1,82 +1,142 @@
-/* mbed Microcontroller Library
- * Copyright (c) 2019 ARM Limited
- * SPDX-License-Identifier: Apache-2.0
+/* Grupo 
+    Ester Rodrigues Vieira
+    Gabriel da Silva Carvalho
+    Manoel Elias de Araujo Neto
  */
+
 
 #include "mbed.h"
 #include <chrono>
 
 using namespace std::chrono;
+using namespace std;
 
-// // Blinking rate in milliseconds
-#define BLINKING_RATE     500ms
+Timer timer;
 
+/* Definição da variável global 
+tendo em vista uma senha de 4 digitos
+e a necessidade da variavel ser unsigned int
+atribuo isso como um array para facilitar 
+o acesso aos números
+*/ 
+unsigned int password[4] = {2, 7, 6, 0};
 
-// int main()
-// {
-//     // Initialise the digital pin LED1 as an output
-//     DigitalOut led(LED1);
+// variavel global de senha correta
+bool isPasswordRight = false;
 
-//     DigitalIn botao(BUTTON1);
-//     int botaoAntes = botao;
-//     int botaoAtual = botao;
-//     while (true) {
-//         ThisThread::sleep_for(BLINKING_RATE);
-    
-//         if(botaoAtual == 0 && botaoAntes == 1) {
-//             led = !led;
-//         }    
-//         botaoAntes = botaoAtual;
-//         botaoAtual = botao;
-//         // printf("Hello world! %i\n", led.read());
-//         printf("botao: %d\n", botao.read());
-//     }
-// }
+// typed password 
+int *typedPassword= new int[4];
 
+// Definição dos leds
+DigitalOut led_1(PA_10); // Led 1 (D2)
+DigitalOut led_2(PB_3); // led 2 (D3)
+DigitalOut led_3(PB_5); // led 3 (D4)
+DigitalOut led_4(PB_4); // led 4 (D5)
 
-/*InterruptIn button(BUTTON1);
-Timer t;
-int counter = 0;
-int leds[] = {0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE0, 0xFE, 0xF6};
-BusOut display(PA_10, PC_7, PA_9, PA_8, PB_10, PB_4, PB_5, PB_3);
+// Definição dos leds de saída para informar estado da senha
+DigitalOut led_right(PB_10); // led correto (D6)
+DigitalOut led_wrong(PA_8); // led errado (D7)
 
-void botao_solto() {
-    //printf("click!");
-    static unsigned long long timeBefore = 0;
-    unsigned long long timeNow = duration_cast<milliseconds>(t.elapsed_time()).count();
-    if(timeNow - timeBefore >= 20){
-        //printf("vai incrementar");
-        display = leds[counter++ % 10];
-    }
-    //printf("%i", counter);
-    timeBefore = timeNow;
+// Definição dos botões (0-9)
+BusIn buttons(PA_9, PC_7, PB_6, PA_7, PA_6, PA_5, PB_11, PB_12, PA_11, PA_12);
+
+// Botões de ação
+InterruptIn button_ok(PB_2); // Botão ok
+InterruptIn button_clear(PB_1); // Botão limpar
+
+// Função para desligar todos os leds
+void turnOffLeds() {
+    led_1 = !led_1;
+    led_2 = !led_2;
+    led_3 = !led_3;
+    led_4 = !led_4;
+    led_right = !led_right;
+    led_wrong = !led_wrong;
 }
 
-int main(){
-    t.start();
-    button.rise(&botao_solto); // attach the address of the flip function to the rising edge
-
-    while (true) {          // wait around, interrupts will interrupt this!
-        ThisThread::sleep_for(BLINKING_RATE);
-    }
+// Função para verificar se a senha digitada é equivalente a pre-definida
+ void checkPassCorrect(int* typedPassword){
+     // percorre a senha digitada para checar se é igual a senha pre-definida
+     for(int i=0; i<4; i++){
+         // se o dígito não é correto
+         if (!(typedPassword[i] != password[i])) {
+             // atribui true a variável global de verificação de senha
+             isPasswordRight = true;
+        }
+     }
 }
+
+// Função de chamada para verificar a senha inserida quando o botão 'ok' é pressionado
+void checkPasswordCaller() {
+    checkPassCorrect(typedPassword);
+}
+
+/* Função getPassword pega os dados digitados pelo o usuário
+e armazena em um array do tipo *int (pois não é possível retornar um array
+normal em c++) 
 */
+void getPassword() {
+    int index = 0;
+    bool typed = false;
 
-int leds[] = {0xFC, 0x60, 0xDA, 0xF2, 0x66, 0xB6, 0xBE, 0xE0, 0xFE, 0xF6};
-BusOut display(PA_10, PC_7, PA_9, PA_8, PB_10, PB_4, PB_5, PB_3);
+    for(int i = 0; i < 10 && index < 4; i++) {
+        // lógica para verificar se o botão clear foi pressionado e remover o último dígito
+        if(button_clear && index > 0){
+            typedPassword[index - 1] = -1;
+            index--;
+        // lógica para verificar se o botão ok foi pressionado e parar o loop
+        }else if (button_ok) {
+            typed = true;
+            checkPasswordCaller();
+            break;
+        // lógica pra verifcar quando e qual botão foi pressionando
+        }else if(!buttons[i]) {
+            typedPassword[index] = i;
+            index++;
+        }
+    }
 
+    if(typed == false){
+        //ao pressionar o botão ok irá verificar se as senhas coincidem
+        button_ok.rise(&checkPasswordCaller);
+    }
+}
 
-// Teste Joystick
+//Função para ligar o led ao terminar de digitar a senha, irá receber um led e ligá-lo
+void turnOnLedPass(DigitalOut& led){
+    // contador iniciado ao chamar a função
+    timer.start();
+    // enquanto não dá o tempo, o led permanece aceso
+    while(timer.read()<5.0){
+        led = !led;
+    }
+    // o timer para e é resetado
+    timer.stop();
+    timer.reset();
+}
+
+void resetSystem(){
+    // apaga todos os leds
+    turnOffLeds();
+    typedPassword = NULL;
+    isPasswordRight = false;
+}
+
 int main(){
-    AnalogIn x(PA_1);
-    AnalogIn y(PA_4);
-    
-    DigitalIn sw(PA_15);
-
-    while (1) {
-        int convertedX = x.read() * 10;
-        printf("%d\n", convertedX);
-        display = leds[convertedX == 10 ? 9 : convertedX];
+    // desligar todos os leds
+    turnOffLeds();
+    while (true) {
+        // pegar valor digitado para cada led
+        getPassword();
+        if(isPasswordRight) {
+            turnOnLedPass(led_right);
+            // o sistema é resetado para o estado inicial
+            resetSystem();
+        } else {
+            turnOnLedPass(led_wrong);
+            // o sistema é resetado para o estado inicial
+            resetSystem();
+        }
         
     }
 }
